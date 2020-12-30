@@ -48,3 +48,6 @@ where:
 - `verbosity` (optional): if 0 (default) only benchmarks are printed, otherwise it will print input data, output data, benchmarks and validity check.
 
 The script `parallel_nn/cuda_nn/evaluate.sh` automates the execution of the program varying the problem size, recording each effective bandwidth, computational throughput and speed-up w.r.t. CPU.
+
+## 3. Report
+The file `parallel_nn/Report.pdf` contains an in-depth analysis of the parallel algorithms.

@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     }
 
     unsigned int verbose;
-    if (argc == 4) {
+    if (argc >= 4) {
         verbose = strtoul(argv[3], &end, 10);
         if (*end || (verbose != 0 && verbose != 1)) {
             std::cerr << "The verbosity must be either 0 or 1" << std::endl;

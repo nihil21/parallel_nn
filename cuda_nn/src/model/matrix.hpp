@@ -1,0 +1,20 @@
+//
+// Created by nihil on 15/12/20.
+//
+
+#ifndef CUDA_NN_MATRIX_HPP
+#define CUDA_NN_MATRIX_HPP
+
+
+#include "tensor.hpp"
+
+class Matrix : public Tensor {
+public:
+    // Standard constructor
+    explicit Matrix(const std::vector<unsigned int> &shape) : Tensor(shape) {};
+    // Custom string representation for print
+    void print(std::ostream& where) const override;
+};
+
+
+#endif //CUDA_NN_MATRIX_HPP

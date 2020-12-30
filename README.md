@@ -4,7 +4,7 @@ C++ implementation of a neural network using OpenMP and CUDA for parallelization
 ## 1. OpenMP
 This version, in the `parallel_nn/openmp_nn` folder, uses OpenMP to achieve parallelism.
 
-### 1.1. Build (requires OpenMP)
+### 1.1. Build
 ```
 cd openmp_nn
 mkdir build && cd build
@@ -25,7 +25,7 @@ where:
 
 The script `parallel_nn/openmp_nn/evaluate.sh` automates the execution of the program varying the number of threads and the problem size, recording each execution time (which can then be used to compute speedup and strong/weak scaling efficiency).
 
-## 2. Cuda
+## 2. CUDA
 This version, in the `parallel_nn/cuda_nn` folder, uses CUDA to achieve parallelism.
 
 ### 2.1. Build

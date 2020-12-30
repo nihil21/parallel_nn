@@ -36,7 +36,7 @@ cmake ..
 make
 ```
 
-Please notice that the build is designed for Turing GPUs (SM75); if you wish to build the program for other architectures, you need to edit `parallel_nn/cuda_nn/CMakeLists.txt` accordingly.
+Please notice that this build was designed for Turing GPUs (SM75); if you wish to build the program for other architectures, you'll need to edit `parallel_nn/cuda_nn/CMakeLists.txt` accordingly.
 
 ### 2.2. Usage
 ```

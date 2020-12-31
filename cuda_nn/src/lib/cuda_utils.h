@@ -18,7 +18,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 inline double compute_bandwidth(unsigned int in_features, unsigned int out_features, unsigned int r,
                                 unsigned int blkdim, float kernel_time) {
-    unsigned int n_rw = in_features + (r - 1) * (int) std::floor(float(out_features) / blkdim) + out_features * (r + 1);
+    unsigned int n_rw = in_features + (r - 1) * (int) std::floor(float(in_features) / blkdim) + out_features * (r + 1);
     return 4 * (double) n_rw / (kernel_time * pow(10, 6));  // kernel_time in milliseconds
 }
 

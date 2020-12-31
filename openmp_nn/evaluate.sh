@@ -2,15 +2,15 @@
 # Get number of cores
 CORES=$(grep -c processor < /proc/cpuinfo)
 
-echo "--- Testing strong scaling efficiency ---"
+#echo "--- Testing strong scaling efficiency ---"
 N=1000
 K=250
 
 for p in $(seq "$CORES"); do
   echo "$p threads:"
   for _ in $(seq 5); do
-    EXEC_TIME0="$(OMP_NUM_THREADS=$p ./cmake-build-debug/openmp_nn $N $K 0 0 | sed 's/Execution time: //' )"
-    EXEC_TIME1="$(OMP_NUM_THREADS=$p ./cmake-build-debug/openmp_nn $N $K 0 1 | sed 's/Execution time: //' )"
+    EXEC_TIME0="$(OMP_NUM_THREADS=$p ./build/openmp_nn $N $K 0 0 | sed 's/Execution time: //' )"
+    EXEC_TIME1="$(OMP_NUM_THREADS=$p ./build/openmp_nn $N $K 0 1 | sed 's/Execution time: //' )"
     echo -e "$EXEC_TIME0\t$EXEC_TIME1"
   done
 done
@@ -25,8 +25,8 @@ for p in $(seq "$CORES"); do
   # Compute scaled N
   Np=$(( (1 - p) * K_0 + p * N0 ))
   for _ in $(seq 5); do
-    EXEC_TIME0="$(OMP_NUM_THREADS=$p ./cmake-build-debug/openmp_nn "$Np" "$K0" 0 0 | sed 's/Execution time: //' )"
-    EXEC_TIME1="$(OMP_NUM_THREADS=$p ./cmake-build-debug/openmp_nn "$Np" "$K0" 0 1 | sed 's/Execution time: //' )"
+    EXEC_TIME0="$(OMP_NUM_THREADS=$p ./build/openmp_nn "$Np" "$K0" 0 0 | sed 's/Execution time: //' )"
+    EXEC_TIME1="$(OMP_NUM_THREADS=$p ./build/openmp_nn "$Np" "$K0" 0 1 | sed 's/Execution time: //' )"
     echo -e "$EXEC_TIME0\t$EXEC_TIME1"
   done
 done
@@ -47,8 +47,8 @@ for p in $(seq "$CORES"); do
   # Round to nearest integer
   Np=$(echo "($Np+0.5)/1" | bc)
   for _ in $(seq 5); do
-    EXEC_TIME0="$(OMP_NUM_THREADS=$p ./cmake-build-debug/openmp_nn "$Np" "$Kp" 0 0 | sed 's/Execution time: //' )"
-    EXEC_TIME1="$(OMP_NUM_THREADS=$p ./cmake-build-debug/openmp_nn "$Np" "$Kp" 0 1 | sed 's/Execution time: //' )"
+    EXEC_TIME0="$(OMP_NUM_THREADS=$p ./build/openmp_nn "$Np" "$Kp" 0 0 | sed 's/Execution time: //' )"
+    EXEC_TIME1="$(OMP_NUM_THREADS=$p ./build/openmp_nn "$Np" "$Kp" 0 1 | sed 's/Execution time: //' )"
     echo -e "$EXEC_TIME0\t$EXEC_TIME1"
   done
 done

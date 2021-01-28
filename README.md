@@ -52,7 +52,7 @@ where:
 - `K`: the number of layers, with N > (K - 1) * (R - 1) and R fixed to 3;
 - `verbosity` (optional): if 0 (default) only benchmarks are printed, otherwise it will print input data, output data, benchmarks and validity check.
 
-The script `cuda_nn/evaluate.sh` automates the execution of the program varying the problem size, recording each effective bandwidth, computational throughput and speed-up w.r.t. CPU.
+The script `cuda_nn/evaluate.sh` automates the execution of the program varying the problem size, recording each effective bandwidth, computational throughput and speed-up w.r.t. CPU (in order to compute the latter, you will need to pass the path to the OpenMP version of the program as the first argument).
 
 ## 3. Report
 The file `Report.pdf` contains an in-depth analysis of the parallel algorithms.

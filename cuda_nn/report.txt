@@ -1,66 +1,200 @@
-N = 50, K = 5
-Average effective bandwidth: 0.181 GB/s
-Average throughput: 0.028 GFLOP/s
-Execution time (GPU): 0.000098 s
-Execution time (CPU): 0.000240 s
-Speed-up GPU/CPU: 2.44 x
-N = 100, K = 10
-Average effective bandwidth: 0.457 GB/s
-Average throughput: 0.069 GFLOP/s
-Execution time (GPU): 0.000176 s
-Execution time (CPU): 0.001134 s
-Speed-up GPU/CPU: 6.45 x
-N = 500, K = 15
-Average effective bandwidth: 2.018 GB/s
-Average throughput: 0.303 GFLOP/s
-Execution time (GPU): 0.000295 s
-Execution time (CPU): 0.008493 s
-Speed-up GPU/CPU: 28.75 x
-N = 1000, K = 20
-Average effective bandwidth: 4.452 GB/s
-Average throughput: 0.668 GFLOP/s
-Execution time (GPU): 0.000325 s
-Execution time (CPU): 0.022081 s
-Speed-up GPU/CPU: 68.04 x
-N = 5000, K = 25
-Average effective bandwidth: 19.694 GB/s
-Average throughput: 2.953 GFLOP/s
-Execution time (GPU): 0.000571 s
-Execution time (CPU): 0.143615 s
-Speed-up GPU/CPU: 251.59 x
-N = 10000, K = 30
-Average effective bandwidth: 35.832 GB/s
-Average throughput: 5.371 GFLOP/s
-Execution time (GPU): 0.000847 s
-Execution time (CPU): 0.334800 s
-Speed-up GPU/CPU: 395.09 x
-N = 50000, K = 35
-Average effective bandwidth: 62.754 GB/s
-Average throughput: 9.406 GFLOP/s
-Execution time (GPU): 0.003421 s
-Execution time (CPU): 1.951624 s
-Speed-up GPU/CPU: 570.46 x
-N = 100000, K = 40
-Average effective bandwidth: 95.413 GB/s
-Average throughput: 14.301 GFLOP/s
-Execution time (GPU): 0.005555 s
-Execution time (CPU): 4.616996 s
-Speed-up GPU/CPU: 831.17 x
-N = 500000, K = 45
-Average effective bandwidth: 142.905 GB/s
-Average throughput: 21.419 GFLOP/s
-Execution time (GPU): 0.038482 s
-Execution time (CPU): 25.239030 s
-Speed-up GPU/CPU: 655.87 x
-N = 1000000, K = 50
-Average effective bandwidth: 161.323 GB/s
-Average throughput: 24.180 GFLOP/s
-Execution time (GPU): 0.054985 s
-Execution time (CPU): 56.043836 s
-Speed-up GPU/CPU: 1019.26 x
-N = 5000000, K = 55
-Average effective bandwidth: 173.682 GB/s
-Average throughput: 26.032 GFLOP/s
-Execution time (GPU): 0.250228 s
-Execution time (CPU): 305.116978 s
-Speed-up GPU/CPU: 1219.35 x
+Path to OpenMP program: ../openmp_nn/cmake-build-debug/openmp_nn
+OpenMP: using 12 threads
+
+N = 5000, K = 200
+Execution time (GPU): 0.008909 s
+Average effective bandwidth: 10.195 GB/s
+Average throughput: 1.527 GFLOP/s
+CPU time: 0.009167 s
+Execution time (GPU): 0.008889 s
+Average effective bandwidth: 10.413 GB/s
+Average throughput: 1.560 GFLOP/s
+CPU time: 0.010810 s
+Execution time (GPU): 0.008946 s
+Average effective bandwidth: 9.607 GB/s
+Average throughput: 1.439 GFLOP/s
+CPU time: 0.011126 s
+Execution time (GPU): 0.008983 s
+Average effective bandwidth: 9.217 GB/s
+Average throughput: 1.381 GFLOP/s
+CPU time: 0.010168 s
+Execution time (GPU): 0.008878 s
+Average effective bandwidth: 10.099 GB/s
+Average throughput: 1.513 GFLOP/s
+CPU time: 0.010454 s
+
+N = 10000, K = 200
+Execution time (GPU): 0.010516 s
+Average effective bandwidth: 26.872 GB/s
+Average throughput: 4.025 GFLOP/s
+CPU time: 0.015365 s
+Execution time (GPU): 0.010483 s
+Average effective bandwidth: 17.696 GB/s
+Average throughput: 2.651 GFLOP/s
+CPU time: 0.016909 s
+Execution time (GPU): 0.010459 s
+Average effective bandwidth: 18.862 GB/s
+Average throughput: 2.825 GFLOP/s
+CPU time: 0.018983 s
+Execution time (GPU): 0.010601 s
+Average effective bandwidth: 19.676 GB/s
+Average throughput: 2.947 GFLOP/s
+CPU time: 0.022289 s
+Execution time (GPU): 0.010459 s
+Average effective bandwidth: 15.903 GB/s
+Average throughput: 2.382 GFLOP/s
+CPU time: 0.017085 s
+
+N = 20000, K = 200
+Execution time (GPU): 0.014347 s
+Average effective bandwidth: 39.931 GB/s
+Average throughput: 5.981 GFLOP/s
+CPU time: 0.033477 s
+Execution time (GPU): 0.014433 s
+Average effective bandwidth: 31.649 GB/s
+Average throughput: 4.740 GFLOP/s
+CPU time: 0.035482 s
+Execution time (GPU): 0.014596 s
+Average effective bandwidth: 38.543 GB/s
+Average throughput: 5.773 GFLOP/s
+CPU time: 0.034464 s
+Execution time (GPU): 0.014743 s
+Average effective bandwidth: 43.471 GB/s
+Average throughput: 6.511 GFLOP/s
+CPU time: 0.035817 s
+Execution time (GPU): 0.014539 s
+Average effective bandwidth: 36.486 GB/s
+Average throughput: 5.465 GFLOP/s
+CPU time: 0.036394 s
+
+N = 50000, K = 200
+Execution time (GPU): 0.028110 s
+Average effective bandwidth: 82.303 GB/s
+Average throughput: 12.327 GFLOP/s
+CPU time: 0.087636 s
+Execution time (GPU): 0.028261 s
+Average effective bandwidth: 83.001 GB/s
+Average throughput: 12.431 GFLOP/s
+CPU time: 0.073735 s
+Execution time (GPU): 0.027633 s
+Average effective bandwidth: 84.110 GB/s
+Average throughput: 12.597 GFLOP/s
+CPU time: 0.074394 s
+Execution time (GPU): 0.027636 s
+Average effective bandwidth: 84.168 GB/s
+Average throughput: 12.606 GFLOP/s
+CPU time: 0.116296 s
+Execution time (GPU): 0.028120 s
+Average effective bandwidth: 84.301 GB/s
+Average throughput: 12.626 GFLOP/s
+CPU time: 0.082740 s
+
+N = 100000, K = 200
+Execution time (GPU): 0.059125 s
+Average effective bandwidth: 104.458 GB/s
+Average throughput: 15.644 GFLOP/s
+CPU time: 0.148639 s
+Execution time (GPU): 0.059213 s
+Average effective bandwidth: 102.448 GB/s
+Average throughput: 15.343 GFLOP/s
+CPU time: 0.147386 s
+Execution time (GPU): 0.059212 s
+Average effective bandwidth: 103.102 GB/s
+Average throughput: 15.441 GFLOP/s
+CPU time: 0.144151 s
+Execution time (GPU): 0.059507 s
+Average effective bandwidth: 102.379 GB/s
+Average throughput: 15.333 GFLOP/s
+CPU time: 0.142467 s
+Execution time (GPU): 0.059079 s
+Average effective bandwidth: 105.213 GB/s
+Average throughput: 15.758 GFLOP/s
+CPU time: 0.144030 s
+
+N = 200000, K = 200
+Execution time (GPU): 0.187247 s
+Average effective bandwidth: 108.878 GB/s
+Average throughput: 16.306 GFLOP/s
+CPU time: 0.280051 s
+Execution time (GPU): 0.187966 s
+Average effective bandwidth: 106.473 GB/s
+Average throughput: 15.946 GFLOP/s
+CPU time: 0.293299 s
+Execution time (GPU): 0.187702 s
+Average effective bandwidth: 112.406 GB/s
+Average throughput: 16.835 GFLOP/s
+CPU time: 0.271460 s
+Execution time (GPU): 0.188182 s
+Average effective bandwidth: 109.740 GB/s
+Average throughput: 16.435 GFLOP/s
+CPU time: 0.285039 s
+Execution time (GPU): 0.187637 s
+Average effective bandwidth: 109.893 GB/s
+Average throughput: 16.458 GFLOP/s
+CPU time: 0.249320 s
+
+N = 500000, K = 200
+Execution time (GPU): 0.402767 s
+Average effective bandwidth: 157.301 GB/s
+Average throughput: 23.558 GFLOP/s
+CPU time: 0.710260 s
+Execution time (GPU): 0.403758 s
+Average effective bandwidth: 156.409 GB/s
+Average throughput: 23.425 GFLOP/s
+CPU time: 0.622049 s
+Execution time (GPU): 0.410066 s
+Average effective bandwidth: 157.458 GB/s
+Average throughput: 23.582 GFLOP/s
+CPU time: 0.626366 s
+Execution time (GPU): 0.403179 s
+Average effective bandwidth: 156.920 GB/s
+Average throughput: 23.501 GFLOP/s
+CPU time: 0.620454 s
+Execution time (GPU): 0.402336 s
+Average effective bandwidth: 157.478 GB/s
+Average throughput: 23.585 GFLOP/s
+CPU time: 0.622365 s
+
+N = 1000000, K = 200
+Execution time (GPU): 0.739669 s
+Average effective bandwidth: 166.283 GB/s
+Average throughput: 24.904 GFLOP/s
+CPU time: 1.249169 s
+Execution time (GPU): 0.734881 s
+Average effective bandwidth: 166.414 GB/s
+Average throughput: 24.923 GFLOP/s
+CPU time: 1.939373 s
+Execution time (GPU): 0.748714 s
+Average effective bandwidth: 165.427 GB/s
+Average throughput: 24.775 GFLOP/s
+CPU time: 1.388234 s
+Execution time (GPU): 0.750551 s
+Average effective bandwidth: 165.649 GB/s
+Average throughput: 24.809 GFLOP/s
+CPU time: 1.426409 s
+Execution time (GPU): 0.745595 s
+Average effective bandwidth: 164.637 GB/s
+Average throughput: 24.657 GFLOP/s
+CPU time: 1.251522 s
+
+N = 2000000, K = 200
+Execution time (GPU): 1.433651 s
+Average effective bandwidth: 170.303 GB/s
+Average throughput: 25.506 GFLOP/s
+CPU time: 2.584402 s
+Execution time (GPU): 1.431036 s
+Average effective bandwidth: 170.939 GB/s
+Average throughput: 25.601 GFLOP/s
+CPU time: 2.526260 s
+Execution time (GPU): 1.433239 s
+Average effective bandwidth: 171.128 GB/s
+Average throughput: 25.629 GFLOP/s
+CPU time: 2.839233 s
+Execution time (GPU): 1.437388 s
+Average effective bandwidth: 171.056 GB/s
+Average throughput: 25.618 GFLOP/s
+CPU time: 2.825339 s
+Execution time (GPU): 1.439543 s
+Average effective bandwidth: 170.818 GB/s
+Average throughput: 25.583 GFLOP/s
+CPU time: 2.893062 s

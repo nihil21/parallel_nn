@@ -6,79 +6,77 @@
 #include "../lib/cuda_utils.h"
 #include <stdexcept>
 
-Tensor::Tensor(const std::vector<unsigned int> &shape) : _shape(shape), _data(nullptr),
+Tensor::Tensor(const std::vector<unsigned int> &shape) : _shape(shape), _data_host(nullptr), _data_device(nullptr),
                                                          _on_device(false) {  // on host by default
     // Compute flattened shape
     _total = accumulate(begin(shape), end(shape), 1, std::multiplies<>());
-    // Allocate memory on host to store data
-    _data = new float[_total];
+    // Allocate memory on host to store data (pinned memory)
+    cudaSafeCall( cudaMallocHost(&_data_host, _total * sizeof(float )) )
 }
 
 // Copy values from old tensor
-Tensor::Tensor(const Tensor &tensor) : _shape(tensor._shape), _total(tensor._total), _data(nullptr),
-                                       _on_device(tensor._on_device) {
+Tensor::Tensor(const Tensor &tensor) : _shape(tensor._shape), _total(tensor._total), _data_host(nullptr),
+                                       _data_device(nullptr), _on_device(tensor._on_device) {
+    // Allocate memory on host (pinned)
+    cudaSafeCall( cudaMallocHost(&_data_host, _total * sizeof(float )) )
+    // Copy data to the new memory
+    cudaSafeCall(cudaMemcpy(_data_host, tensor._data_host, _total * sizeof(float), cudaMemcpyHostToHost))
+    // Additionally, copy device memory if the old tensor is allocated on device
     if (_on_device) {
         // Allocate memory on device
-        cudaSafeCall( cudaMalloc(&_data, _total * sizeof(float)) )
+        cudaSafeCall(cudaMalloc(&_data_device, _total * sizeof(float)))
         // Copy data to the new memory (device to device)
-        cudaSafeCall( cudaMemcpy(_data, tensor._data, _total * sizeof(float), cudaMemcpyDeviceToDevice) )
-    } else {
-        // Allocate memory on host
-        _data = new float[_total];
-        // Copy data to the new memory
-        std::copy(tensor._data, tensor._data + _total, _data);
+        cudaSafeCall(cudaMemcpy(_data_device, tensor._data_device, _total * sizeof(float), cudaMemcpyDeviceToDevice))
     }
 }
 
-// Initialize members to default value
-Tensor::Tensor(Tensor &&tensor) noexcept : _total(0), _data(nullptr), _on_device(false) {
+// Move values from old tensor
+Tensor::Tensor(Tensor &&tensor) noexcept : _total(tensor._total), _data_host(tensor._data_host),
+                                           _data_device(tensor._data_device), _on_device(tensor._on_device) {
     // Move shape vector from old tensor to the new one
     _shape = std::move(tensor._shape);
-    // Copy total value from old tensor to the new one and set the old one to zero
-    _total = tensor._total;
+    // Reset old tensor attributes
     tensor._total = 0;
-    // Copy information about the location of the tensor
-    _on_device = tensor._on_device;
     tensor._on_device = false;
-    // Copy data pointer from old tensor to the new one and set the old one to nullptr
-    _data = tensor._data;
-    tensor._data = nullptr;
+    tensor._data_host = nullptr;
+    tensor._data_device = nullptr;
 }
 
 Tensor::~Tensor() {
     // Free the memory when the object is destroyed
-    if (_on_device)
-        cudaSafeCall(cudaFree(_data))
-    else
-        delete[] _data;
+    cudaFreeHost(_data_host);
+    free_device();
 }
 
-void Tensor::toDevice() {
-    // Save host data to temporary pointer
-    float* host_data = _data;
-    _data = nullptr;
-    // Allocate memory on device
-    cudaSafeCall( cudaMalloc((void**) &_data, _total * sizeof(float)) )
+void Tensor::allocate_device() {
+    if (!_on_device) {
+        // Allocate memory on device
+        cudaSafeCall(cudaMalloc((void **) &_data_device, _total * sizeof(float)))
+    }
+}
+
+void Tensor::free_device() {
+    if (_on_device) {
+        // Delete device memory
+        cudaSafeCall( cudaFree(_data_device) )
+        // Update location
+        _on_device = false;
+    }
+}
+
+void Tensor::host2device(bool async) {
     // Copy data to device
-    cudaSafeCall( cudaMemcpy(_data, host_data, _total * sizeof(float), cudaMemcpyHostToDevice) )
-    // Delete host memory
-    delete[] host_data;
+    if (async)
+        cudaSafeCall(cudaMemcpyAsync(_data_device, _data_host, _total * sizeof(float), cudaMemcpyHostToDevice))
+    else
+        cudaSafeCall(cudaMemcpy(_data_device, _data_host, _total * sizeof(float), cudaMemcpyHostToDevice))
     // Update location
     _on_device = true;
 }
 
-void Tensor::toHost() {
-    // Save device data to temporary pointer
-    float* device_data = _data;
-    _data = nullptr;
-    // Allocate memory on host
-    _data = new float[_total];
-    // Copy data to host
-    cudaSafeCall( cudaMemcpy(_data, device_data, _total * sizeof(float), cudaMemcpyDeviceToHost) )
-    // Delete device memory
-    cudaSafeCall( cudaFree(device_data) )
-    // Update location
-    _on_device = false;
+void Tensor::device2host() {
+    // Copy data to host (host memory is already allocated by the constructor)
+    cudaSafeCall( cudaMemcpy(_data_host, _data_device, _total * sizeof(float), cudaMemcpyDeviceToHost) )
 }
 
 void Tensor::init(std::uniform_real_distribution<float> d, std::mt19937 &gen) {
@@ -86,7 +84,7 @@ void Tensor::init(std::uniform_real_distribution<float> d, std::mt19937 &gen) {
         throw std::invalid_argument("Cannot initialize tensor allocated on device");
 
     for (int i = 0; i < _total; i++)
-        _data[i] = d(gen);
+        _data_host[i] = d(gen);
 }
 
 // Creates a copy of the original tensor (expensive)
@@ -96,18 +94,19 @@ Tensor& Tensor::operator=(const Tensor &tensor) {
         // Copy shape and total values
         _shape = tensor._shape;
         _total = tensor._total;
+        // Delete old data from host
+        cudaSafeCall( cudaFreeHost(_data_host) )
+        // Copy data to the new memory
+        std::copy(tensor._data_host, tensor._data_host + _total, _data_host);
+        // Additionally, copy device memory if the original tensor is allocated on device
         if (_on_device) {
             // Delete old data from device
-            cudaSafeCall( cudaFree(_data) )
+            free_device();
             // Allocate new memory on device
-            cudaSafeCall( cudaMalloc(&_data, _total * sizeof(float)) )
+            cudaSafeCall(cudaMalloc(&_data_device, _total * sizeof(float)))
             // Copy data to the new memory (device to device)
-            cudaSafeCall( cudaMemcpy(_data, tensor._data, _total * sizeof(float), cudaMemcpyDeviceToDevice) )
-        } else {
-            // Delete old data from host
-            delete[] _data;
-            // Copy data to the new memory
-            std::copy(tensor._data, tensor._data + _total, _data);
+            cudaSafeCall( cudaMemcpy(_data_device, tensor._data_device,
+                                     _total * sizeof(float), cudaMemcpyDeviceToDevice) )
         }
     }
     return *this;
@@ -122,24 +121,24 @@ Tensor& Tensor::operator=(Tensor &&tensor) noexcept {
         // Copy total value from old tensor to the new one and set the old one to zero
         _total = tensor._total;
         tensor._total = 0;
+        // Delete old data from host
+        cudaSafeCall( cudaFreeHost(_data_host) )
+        // Copy data pointer from old tensor to the new one and set the old one to nullptr
+        _data_host = tensor._data_host;
+        tensor._data_host = nullptr;
+        // Additionally, copy device memory if the original tensor is allocated on device
         if (_on_device) {
             // Delete old data from device
-            cudaSafeCall( cudaFree(_data) )
-        } else {
-            // Delete old data from host
-            delete[] _data;
+            cudaSafeCall( cudaFree(_data_device) )
+            // Copy data pointer from old tensor to the new one and set the old one to nullptr
+            _data_device = tensor._data_device;
+            tensor._data_device = nullptr;
         }
-        // Copy data pointer from old tensor to the new one and set the old one to nullptr
-        _data = tensor._data;
-        tensor._data = nullptr;
     }
     return *this;
 }
 
 std::ostream &operator<<(std::ostream &out, const Tensor &tensor) {
-    if (tensor._on_device)
-        throw std::invalid_argument("Cannot print tensor allocated on device");
-
     tensor.print(out);
     return out;
 }

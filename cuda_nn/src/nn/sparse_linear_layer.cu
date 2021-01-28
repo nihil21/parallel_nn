@@ -65,9 +65,10 @@ SparseLinearLayer::SparseLinearLayer(unsigned int in_features, unsigned int out_
     _bias = d(gen);
 }
 
-void SparseLinearLayer::toDevice() {
-    // Move weights to device
-    _weights.toDevice();
+void SparseLinearLayer::host2device(bool async) {
+    // Copy weights to device
+    _weights.allocate_device();
+    _weights.host2device(async);
     // Copy function pointer to device
     if (strcmp(_activation, "sigmoid") == 0) {
         cudaSafeCall(cudaMemcpyFromSymbol(&_non_linearity, sigmoid_device_ptr, sizeof(non_linearity_t)))  // Sigmoid
@@ -77,9 +78,9 @@ void SparseLinearLayer::toDevice() {
     _on_device = true;
 }
 
-void SparseLinearLayer::toHost() {
-    // Move weights to device
-    _weights.toHost();
+void SparseLinearLayer::free_device() {
+    // Free weights' device memory
+    _weights.free_device();
     // Set pointer to host functions
     if (strcmp(_activation, "sigmoid") == 0) {
         _non_linearity = sigmoid;  // Sigmoid
@@ -89,24 +90,57 @@ void SparseLinearLayer::toHost() {
     _on_device = false;
 }
 
-// Dispatch call according to the allocation of the layers' weights
+// Standard CUDA forward
 Vector SparseLinearLayer::forward(const Vector &in_vector) const {
-    if (_on_device)
-        return forward_gpu(in_vector);
-    else
-        return forward_cpu(in_vector);
+    if (in_vector.get_shape()[0] != _in_features)
+        throw std::invalid_argument("The length of the input vector should match with the number of input features in the layer.");
+    if (!_on_device)
+        throw std::invalid_argument("The layer must be moved to device before calling this method.");
+
+    // Allocate output vector's memory on device
+    Vector out_vector({_out_features});
+    out_vector.allocate_device();
+
+    forwardKernel<<<(in_vector._total + BLKDIM - 1) / BLKDIM, BLKDIM>>>(in_vector._data_device, out_vector._data_device,
+                                                                        _weights._data_device, _bias, _non_linearity,
+                                                                        in_vector._total, out_vector._total);
+    cudaSafeCall(cudaDeviceSynchronize())  // Synchronize kernel
+    cudaSafeCall(cudaPeekAtLastError())  // Check errors
+
+    return out_vector;
+}
+
+// CUDA forward with preventive load of next layer
+Vector SparseLinearLayer::forward(const Vector &in_vector, const std::shared_ptr<SparseLinearLayer>& next) const {
+    if (in_vector.get_shape()[0] != _in_features)
+        throw std::invalid_argument("The length of the input vector should match with the number of input features in the layer.");
+    if (!_on_device)
+        throw std::invalid_argument("The layer must be moved to device before calling this method.");
+
+    // Allocate output vector's memory on device
+    Vector out_vector({_out_features});
+    out_vector.allocate_device();
+
+    forwardKernel<<<(in_vector._total + BLKDIM - 1) / BLKDIM, BLKDIM>>>(in_vector._data_device, out_vector._data_device,
+                                                                        _weights._data_device, _bias, _non_linearity,
+                                                                        in_vector._total, out_vector._total);
+    next->host2device(true);  // Load next layer during kernel execution (async)
+    cudaSafeCall(cudaDeviceSynchronize())  // Synchronize kernel and H2D
+    cudaSafeCall(cudaPeekAtLastError())  // Check errors
+
+    return out_vector;
 }
 
 // Over-loaded forward for CUDA benchmarking
 Vector SparseLinearLayer::forward(const Vector &in_vector, double& bandwidth, double& throughput) const {
     if (in_vector.get_shape()[0] != _in_features)
         throw std::invalid_argument("The length of the input vector should match with the number of input features in the layer.");
-
     if (!_on_device)
-        throw std::invalid_argument("The neural network must be moved to device before calling this method.");
+        throw std::invalid_argument("The layer must be moved to device before calling this method.");
 
+    // Allocate output vector's memory on device
     Vector out_vector({_out_features});
-    out_vector.toDevice();
+    out_vector.allocate_device();
 
     // Measure time with cuda events
     cudaEvent_t start, stop;
@@ -114,13 +148,12 @@ Vector SparseLinearLayer::forward(const Vector &in_vector, double& bandwidth, do
     cudaEventCreate(&stop);
 
     cudaEventRecord(start);
-    forwardKernel<<<(in_vector._total + BLKDIM - 1) / BLKDIM, BLKDIM>>>(in_vector._data, out_vector._data,
-                                                                        _weights._data, _bias, _non_linearity,
+    forwardKernel<<<(in_vector._total + BLKDIM - 1) / BLKDIM, BLKDIM>>>(in_vector._data_device, out_vector._data_device,
+                                                                        _weights._data_device, _bias, _non_linearity,
                                                                         in_vector._total, out_vector._total);
     cudaEventRecord(stop);
-
-    cudaSafeCall(cudaDeviceSynchronize())  // Synchronize after kernel launch
-    cudaSafeCall(cudaPeekAtLastError())  // Check kernel errors
+    cudaSafeCall(cudaDeviceSynchronize())  // Synchronize kernel
+    cudaSafeCall(cudaPeekAtLastError())  // Check errors
 
     float kernel_time = 0;  // in milliseconds
     cudaEventElapsedTime(&kernel_time, start, stop);
@@ -134,25 +167,46 @@ Vector SparseLinearLayer::forward(const Vector &in_vector, double& bandwidth, do
     return out_vector;
 }
 
-// Standard CUDA forward
-Vector SparseLinearLayer::forward_gpu(const Vector &in_vector) const {  // mode determines what for is parallelized
+// Over-loaded forward for CUDA benchmarking with preventive load of next layer
+Vector SparseLinearLayer::forward(const Vector &in_vector, double& bandwidth, double& throughput,
+                                  const std::shared_ptr<SparseLinearLayer>& next) const {
     if (in_vector.get_shape()[0] != _in_features)
         throw std::invalid_argument("The length of the input vector should match with the number of input features in the layer.");
+    if (!_on_device)
+        throw std::invalid_argument("The layer must be moved to device before calling this method.");
 
+    // Allocate output vector's memory on device
     Vector out_vector({_out_features});
-    out_vector.toDevice();
+    out_vector.allocate_device();
 
-    forwardKernel<<<(in_vector._total + BLKDIM - 1) / BLKDIM, BLKDIM>>>(in_vector._data, out_vector._data,
-                                                                        _weights._data, _bias, _non_linearity,
+    // Measure time with cuda events
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    cudaEventRecord(start);
+    forwardKernel<<<(in_vector._total + BLKDIM - 1) / BLKDIM, BLKDIM>>>(in_vector._data_device, out_vector._data_device,
+                                                                        _weights._data_device, _bias, _non_linearity,
                                                                         in_vector._total, out_vector._total);
-    cudaSafeCall(cudaDeviceSynchronize())  // Synchronize after kernel launch
-    cudaSafeCall(cudaPeekAtLastError())  // Check kernel errors
+    cudaEventRecord(stop);
+    next->host2device(true);  // Load next layer during kernel execution (async)
+    cudaSafeCall(cudaDeviceSynchronize())  // Synchronize kernel and H2D
+    cudaSafeCall(cudaPeekAtLastError())  // Check errors
+
+    float kernel_time = 0;  // in milliseconds
+    cudaEventElapsedTime(&kernel_time, start, stop);
+
+    // Compute bandwidth and throughput
+    double bw = compute_bandwidth(_in_features, _out_features, R, BLKDIM, kernel_time);
+    double tp = compute_throughput(_out_features, R, kernel_time);
+    bandwidth = bw;
+    throughput = tp;
 
     return out_vector;
 }
 
-// Sequential version for testing on CPU
-Vector SparseLinearLayer::forward_cpu(const Vector &in_vector) const {
+// Sequential version for validity check
+Vector SparseLinearLayer::forward_seq(const Vector &in_vector) const {
     if (in_vector.get_shape()[0] != _in_features)
         throw std::invalid_argument("The length of the input vector should match with the number of input features in the layer.");
 

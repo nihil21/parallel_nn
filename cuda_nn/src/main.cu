@@ -56,9 +56,8 @@ int main(int argc, char* argv[]) {
     if (verbose)
         std::cout << "Input model:\n" << in_vector << std::endl;
 
-    // Instantiate neural network and move it to device
+    // Instantiate neural network
     NeuralNetwork nn(in_features, n_layers, d, gen);
-    nn.toDevice();
 
     // Execute standard CUDA-accelerated forward method and measure time
     double t_start = get_time();
@@ -68,25 +67,19 @@ int main(int argc, char* argv[]) {
     if (verbose)
         std::cout << "Output of the neural network:\n" << out_vector << std::endl;
 
+    printf("Execution time (GPU): %f s\n", gpu_time);
+
     // Repeat run for benchmarking
     double avg_bandwidth, avg_throughput;
     nn.forward(in_vector, avg_bandwidth, avg_throughput);
+
     printf("Average effective bandwidth: %.3f GB/s\n", avg_bandwidth);
     printf("Average throughput: %.3f GFLOP/s\n", avg_throughput);
 
-    printf("Execution time (GPU): %f s\n", gpu_time);
-
-    // Move neural network back to host and repeat run to test CPU version
-    nn.toHost();
-    t_start = get_time();
-    Vector out_vector_check = nn.forward(in_vector);  // Run sequential version
-    double cpu_time = get_time() - t_start;
-
-    printf("Execution time (CPU): %f s\n", cpu_time);
-    printf("Speed-up GPU/CPU: %.2f x\n", cpu_time / gpu_time);
-
     // Perform validity check, if required
     if (verbose) {
+        Vector out_vector_check = nn.forward_seq(in_vector);
+
         for (int i = 0; i < out_vector.get_total(); i++)
             if (!equal(out_vector[i], out_vector_check[i])) {
                 printf("Validity check failed\n");

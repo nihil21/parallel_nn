@@ -20,7 +20,7 @@ N=$N0
 for i in {1..9}; do
   echo -e "\nN = $N, K = $K"
   for _ in $(seq 5); do
-    ./cmake-build-debug/cuda_nn "$N" "$K"
+    ./build/cuda_nn "$N" "$K"
     CPU_TIME="$(OMP_NUM_THREADS=$n_threads $PATH_TO_OMP "$N" "$K" | sed 's/Execution time: //' )"
     echo "CPU time: $CPU_TIME"
   done

@@ -23,8 +23,8 @@ inline double compute_bandwidth(unsigned int in_features, unsigned int out_featu
 }
 
 inline double compute_throughput(unsigned int out_features, unsigned int r, float kernel_time) {
-    unsigned int macs = 2 * out_features * r;
-    return macs / (kernel_time * pow(10, 6));  // kernel_time in milliseconds
+    unsigned int flops = 2 * out_features * r;
+    return flops / (kernel_time * pow(10, 6));  // kernel_time in milliseconds
 }
 
 #endif //CUDA_NN_CUDA_UTILS_H

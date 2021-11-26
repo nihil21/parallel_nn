@@ -6,7 +6,6 @@
 #include "../lib/cuda_utils.h"
 #include "../nn/neural_network.hpp"  // for R
 #include <cstring>
-#include <iostream>
 #include <stdexcept>
 
 // Kernel implementing forward method
